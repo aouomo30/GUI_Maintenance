@@ -18,7 +18,7 @@ def writecsv(record_list):
 
 GUI = Tk()
 GUI.title('Program ซ่อมบำรุง')
-GUI.geometry('800x600+50+50')
+GUI.geometry('1200x600+50+50')
 
 FONT1 = ('Angsana New',25, 'bold')
 FONT2 = ('Angsana New',15)
@@ -118,10 +118,16 @@ B.place(x=180,y=350)
 
 ########## TAB 2 ################
 header =  ['TSID','ชื่อ','แผนก','อุปกรณ์','อาการเสีย','หมายเลข','เบอร์โทรผู้แจ้ง']
-headerw = [50,100,100,150,200,100,100]
+headerw = [100,150,150,200,250,150,150]
 
 mtworkorderlist = ttk.Treeview(T2,columns=header,show='headings',height=10)
 mtworkorderlist.pack()
+
+# ปรับขนาดฟอนต์และตารางให้ฬหญ่ขึ้น
+style = ttk.Style()
+style.configure('Treeview.Heading',padding=(10,10),font=('Angsana New',20,'bold'))
+style.configure('Treeview',rowheight=25,font=('Angsana New',15))
+
 
 for h,w in zip(header,headerw):
     mtworkorderlist.heading(h,text=h)
@@ -138,6 +144,116 @@ def update_table():
         del d[0] # ลบ ID จาก database ออก
         mtworkorderlist.insert('','end',values=d)
 
-#################################
+### หน้าสำหรับแก้ไขข้อมูล ######
+def EditPage_mtworkorder(event=None):
+    select = mtworkorderlist.selection()
+    output = mtworkorderlist.item(select)
+    op = (output['values'])
+
+    tsid = op[0]
+    t_name = op[1]
+    t_department = op[2]
+    t_device = op[3]
+    t_problem = op[4]
+    t_number = op[5]
+    t_tel = '0{}'.format(op[6])
+
+
+    GUI2 = Toplevel()
+    GUI2.title('หน้าแก้ไขข้อมูลใบแจ้งซ่อม')
+    GUI2.geometry('500x500')
+
+    # แทรก Tab 1
+    
+    L = Label(GUI2,text='ใบแจ้งซ่อม',font=FONT1)
+    L.place(x=100,y=0)
+
+    L = Label(GUI2,text='ชื่อผู้แจ้ง',font=FONT2)
+    L.place(x=30,y=50)
+    v_name2 = StringVar()
+    v_name2.set(t_name)
+
+    E1 = ttk.Entry(GUI2,textvariable=v_name2,font=FONT2)
+    E1.place(x=150,y=50)
+
+    L = Label(GUI2,text='แผนก',font=FONT2)
+    L.place(x=30,y=100)
+    v_department2 = StringVar()
+    v_department2.set(t_department)
+
+    E2 = ttk.Entry(GUI2,textvariable=v_department2,font=FONT2)
+    E2.place(x=150,y=100)
+
+    L = Label(GUI2,text='อุปกรณ์',font=FONT2)
+    L.place(x=30,y=150)
+    v_device2 = StringVar()
+    v_device2.set(t_device)
+
+    E3 = ttk.Entry(GUI2,textvariable=v_device2,font=FONT2)
+    E3.place(x=150,y=150)
+
+    L = Label(GUI2,text='อาการเสีย',font=FONT2)
+    L.place(x=30,y=200)
+    v_problem2 = StringVar()
+    v_problem2.set(t_problem)
+
+    E4 = ttk.Entry(GUI2,textvariable=v_problem2,font=FONT2)
+    E4.place(x=150,y=200)
+
+    L = Label(GUI2,text='หมายเลข',font=FONT2)
+    L.place(x=30,y=250)
+    v_number2 = StringVar()
+    v_number2.set(t_number)
+
+    E5 = ttk.Entry(GUI2,textvariable=v_number2,font=FONT2)
+    E5.place(x=150,y=250)
+
+    L = Label(GUI2,text='เบอร์โทร',font=FONT2)
+    L.place(x=30,y=300)
+    v_tel2 = StringVar()
+    v_tel2.set(t_tel)
+
+    E6 = ttk.Entry(GUI2,textvariable=v_tel2,font=FONT2)
+    E6.place(x=150,y=300)
+
+    def edit_save():
+        name = v_name2.get()
+        department = v_department2.get()
+        device = v_device2.get()
+        problem = v_problem2.get()
+        number = v_number2.get()
+        tel = v_tel2.get()
+
+        update_mtworkorder(tsid,'name',name)
+        update_mtworkorder(tsid,'department',department)
+        update_mtworkorder(tsid,'device',device)
+        update_mtworkorder(tsid,'problem',problem)
+        update_mtworkorder(tsid,'number',number)
+        update_mtworkorder(tsid,'tel',tel)
+
+        update_table()
+        GUI2.destroy()
+
+    B = ttk.Button(GUI2, text='บันทึกใบแจ้งซ่อม',command=edit_save)
+    B.place(x=180,y=350)
+
+    GUI2.mainloop
+
+mtworkorderlist.bind('<Double-1>',EditPage_mtworkorder)
+
+def Delete_mtworkorder(event=None):
+    select = mtworkorderlist.selection()
+    output = mtworkorderlist.item(select)
+    tsid = (output['values'][0]) # get only tsid
+
+    check = messagebox.askyesno('ยืนยันการลบ','คุณต้องการลบข้อมูลใช่หรือไม่')
+    print(check)
+    if check == True:
+        delete_mtworkorder(tsid)
+        update_table()
+
+
+mtworkorderlist.bind('<Delete>',Delete_mtworkorder)
+
 update_table()
 GUI.mainloop()
